@@ -58,16 +58,22 @@ class Simulation:
 
         # Define masks, where the collision or streaming are not applied
         x = flow.grid
-        no_collision_mask = torch.zeros_like(x[0], dtype=torch.bool, device=self.lattice.device)
-        no_streaming_mask = torch.zeros(self.f.shape, dtype=torch.bool, device=self.lattice.device)
+        no_collision_mask = torch.zeros_like(x[0], dtype=torch.bool,
+                                             device=self.lattice.device)
+        no_streaming_mask = torch.zeros(self.f.shape, dtype=torch.bool,
+                                        device=self.lattice.device)
 
         # Apply boundaries
         self._boundaries = self.flow.boundaries
         for boundary in self._boundaries:
             if hasattr(boundary, "make_no_collision_mask"):
-                no_collision_mask = no_collision_mask | boundary.make_no_collision_mask(self.f.shape)
+                no_collision_mask = (no_collision_mask |
+                                     boundary.make_no_collision_mask(
+                                         self.f.shape))
             if hasattr(boundary, "make_no_streaming_mask"):
-                no_streaming_mask = no_streaming_mask | boundary.make_no_streaming_mask(self.f.shape)
+                no_streaming_mask = (no_streaming_mask |
+                                     boundary.make_no_streaming_mask(
+                                         self.f.shape))
 
         self.collision.no_collision_mask = no_collision_mask.to(torch.bool)
         self.streaming.no_streaming_mask = no_streaming_mask.to(torch.bool)

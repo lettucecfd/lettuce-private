@@ -53,7 +53,7 @@ class Obstacle:
             characteristic_length_lu=char_length_lu, characteristic_length_pu=char_length,
             characteristic_velocity_pu=char_velocity
         )
-        self._mask = np.zeros(shape=self.shape, dtype=bool)
+        self._mask = torch.zeros(self.shape)
 
     @property
     def mask(self):
@@ -61,14 +61,15 @@ class Obstacle:
 
     @mask.setter
     def mask(self, m):
-        assert isinstance(m, np.ndarray) and m.shape == self.shape
-        self._mask = m.astype(bool)
+        # assert isinstance(m, np.ndarray) and m.shape == self.shape
+        self._mask = torch.tensor(m, dtype=torch.bool,
+                                  device=self.units.lattice.device)
 
     def initial_solution(self, x):
-        p = np.zeros_like(x[0], dtype=float)[None, ...]
+        p = torch.zeros_like(x[0])[None, ...]
         u_char = self.units.characteristic_velocity_pu * self._unit_vector()
         u_char = append_axes(u_char, self.units.lattice.D)
-        u = (1 - self.mask) * u_char
+        u = ~self.mask * u_char
         return p, u
 
     @property
@@ -82,7 +83,7 @@ class Obstacle:
         x = self.grid[0]
         return [
             EquilibriumBoundaryPU(
-                np.abs(x) < 1e-6, self.units.lattice, self.units,
+                torch.abs(x) < 1e-6, self.units.lattice, self.units,
                 self.units.characteristic_velocity_pu * self._unit_vector()
             ),
             AntiBounceBackOutlet(self.units.lattice, self._unit_vector().tolist()),
@@ -90,7 +91,7 @@ class Obstacle:
         ]
 
     def _unit_vector(self, i=0):
-        return np.eye(self.units.lattice.D)[i]
+        return torch.eye(self.units.lattice.D)[i]
 
 
 def Obstacle2D(resolution_x, resolution_y, reynolds_number, mach_number, lattice, char_length_lu):

@@ -47,8 +47,9 @@ class PartiallySaturatedBoundary(LettuceBoundary):
     """
 
     # this may be just as efficient as a compact version, b/c the boundary is actually used on all nodes even within the object
-    def __init__(self, mask: torch.Tensor, lattice: Lattice, tau: float, saturation: float):
-        self.mask = mask
+    def __init__(self, mask: torch.Tensor, lattice: Lattice, tau: float,
+                 saturation: float):
+        self.mask = mask.to(torch.bool)
         self.lattice = lattice
         self.tau = tau
         self.B = saturation * (tau - 0.5) / ((1 - saturation) + (tau - 0.5))  # B(epsilon, theta), Krüger p. 448ff
@@ -91,7 +92,7 @@ class InterpolatedBounceBackBoundary(LettuceBoundary):
 
     def __init__(self, mask, lattice: Lattice, collision_data: CollisionData, calc_force=None, ad_enabled=False):
         t_init_start = time.time()
-        self.mask = mask  # location of solid-nodes
+        self.mask = mask.to(torch.bool)  # location of solid-nodes
         self.lattice = lattice
         self.ad_enabled = ad_enabled
         if calc_force is not None:
@@ -231,7 +232,7 @@ class SlipBoundary(LettuceBoundary):
     """
 
     def __init__(self, mask, lattice, direction):
-        self.mask = lattice.convert_to_tensor(mask)
+        self.mask = lattice.convert_to_tensor(mask).to(torch.bool)
         self.lattice = lattice
         self.bb_direction = direction
         e = self.lattice.stencil.e
@@ -255,7 +256,7 @@ class BounceBackBoundary(LettuceBoundary):
     """Fullway Bounce-Back Boundary"""
 
     def __init__(self, mask, lattice):
-        self.mask = lattice.convert_to_tensor(mask)
+        self.mask = lattice.convert_to_tensor(mask).to(torch.bool)
         self.lattice = lattice
 
     def __call__(self, f):
@@ -277,7 +278,7 @@ class EquilibriumBoundaryPU(LettuceBoundary):
     def __init__(self, mask, lattice, units, velocity, pressure=0):
         # parameter input (u, p) in PU!
         # u can be a field (individual ux, uy, (uz) for all boundary nodes) or vector (uniform ux, uy, (uz)))
-        self.mask = mask  # lattice.convert_to_tensor(mask)
+        self.mask = mask.to(torch.bool)  # lattice.convert_to_tensor(mask)
         self.lattice = lattice
         self.units = units
         self.velocity = lattice.convert_to_tensor(velocity)
@@ -388,11 +389,14 @@ class EquilibriumOutletP(AntiBounceBackOutlet):
         return f
 
     def make_no_streaming_mask(self, f_shape):
-        no_streaming_mask = torch.zeros(size=f_shape, dtype=torch.bool, device=self.lattice.device)
-        no_streaming_mask[[np.setdiff1d(np.arange(self.lattice.Q), self.velocities)] + self.index] = 1
+        no_streaming_mask = torch.zeros(size=f_shape, dtype=torch.bool,
+                                        device=self.lattice.device)
+        no_streaming_mask[[np.setdiff1d(np.arange(self.lattice.Q),
+                                        self.velocities)] + self.index] = 1
         return no_streaming_mask
 
     def make_no_collision_mask(self, f_shape):
-        no_collision_mask = torch.zeros(size=f_shape[1:], dtype=torch.bool, device=self.lattice.device)
+        no_collision_mask = torch.zeros(size=f_shape[1:], dtype=torch.bool,
+                                        device=self.lattice.device)
         no_collision_mask[self.index] = 1
         return no_collision_mask

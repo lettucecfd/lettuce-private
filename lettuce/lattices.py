@@ -56,16 +56,22 @@ class Lattice:
     def convert_to_tensor(self, array):
 
         def is_bool_array(it):
-            return (isinstance(it, torch.BoolTensor) or (isinstance(it, torch.Tensor) and it.dtype == torch.bool) or
-                    (isinstance(it, np.ndarray) and it.dtype in [bool, np.uint8]))
+            return (isinstance(it, torch.BoolTensor)
+                    or
+                    (isinstance(it, torch.Tensor) and it.dtype == torch.bool)
+                    or
+                    (isinstance(it, np.ndarray) and it.dtype in [bool,
+                                                                 np.uint8]))
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
 
             if is_bool_array(array):
-                return torch.tensor(array, device=self.device, dtype=torch.bool)
+                return torch.tensor(array, device=self.device,
+                                    dtype=torch.bool)
             else:
-                return torch.tensor(array, device=self.device, dtype=self.dtype)
+                return torch.tensor(array, device=self.device,
+                                    dtype=self.dtype)
 
     @classmethod
     def convert_to_numpy(cls, tensor):
