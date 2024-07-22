@@ -3,6 +3,7 @@ Poiseuille Flow
 """
 
 import numpy as np
+import torch
 
 from lettuce.unit import UnitConversion
 from lettuce.boundary import BounceBackBoundary
@@ -15,8 +16,8 @@ class PoiseuilleFlow2D(object):
         self.units = UnitConversion(
             lattice,
             reynolds_number=reynolds_number, mach_number=mach_number,
-            characteristic_length_lu=resolution, characteristic_length_pu=1,
-            characteristic_velocity_pu=1
+            characteristic_length_lu=resolution, characteristic_length_pu=1.0,
+            characteristic_velocity_pu=1.0
         )
         self.initialize_with_zeros = initialize_with_zeros
 
@@ -34,17 +35,17 @@ class PoiseuilleFlow2D(object):
 
     def initial_solution(self, grid):
         if self.initialize_with_zeros:
-            p = np.array([0 * grid[0]], dtype=float)
-            u = np.array([0 * grid[0], 0 * grid[1]], dtype=float)
+            p = torch.zeros_like(grid[0], dtype=torch.float)[None, ...]
+            u = torch.zeros((2, self.resolution+1, self.resolution+1), dtype=torch.float)
             return p, u
         else:
             return self.analytic_solution(grid)
 
     @property
     def grid(self):
-        x = np.linspace(0, 1, num=self.resolution + 1, endpoint=True)
-        y = np.linspace(0, 1, num=self.resolution + 1, endpoint=True)
-        return np.meshgrid(x, y, indexing='ij')
+        x = torch.linspace(0, 1, self.resolution + 1)
+        y = torch.linspace(0, 1, self.resolution + 1)
+        return torch.meshgrid(x, y, indexing='ij')
 
     @property
     def boundaries(self):
@@ -55,4 +56,4 @@ class PoiseuilleFlow2D(object):
 
     @property
     def acceleration(self):
-        return np.array([0.001, 0])
+        return torch.tensor([0.001, 0])
