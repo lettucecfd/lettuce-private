@@ -33,10 +33,10 @@ print(x.grad)
 
 lattice = lt.Lattice(lt.D2Q9, device=default_device, use_native=False)
 Ma = torch.ones(1, requires_grad=True) * 0.1
-Re = torch.ones(1, requires_grad=True) * 100
+Re = torch.ones(1, requires_grad=True) * 500
 
 flow = PoiseuilleFlow2D(
-    resolution=20,
+    resolution=100,
     reynolds_number=Re,
     mach_number=Ma,
     lattice=lattice
@@ -46,11 +46,9 @@ force = lt.ShanChen(lattice, tau=flow.units.relaxation_parameter_lu,
                     acceleration=acceleration_lu)
 collision = lt.BGKCollision(lattice, tau=flow.units.relaxation_parameter_lu,
                             force=force)
-x, y = flow.grid
 streaming = lt.StandardStreaming(lattice)
 simulation = lt.Simulation(flow=flow, lattice=lattice, collision=collision,
                            streaming=streaming)
-
 simulation.initialize_f_neq()
 
 
