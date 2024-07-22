@@ -17,7 +17,7 @@ class Streaming(LatticeBase):
 
     def __init__(self, lattice: 'Lattice'):
         LatticeBase.__init__(self, lattice)
-        self._no_stream_mask = None
+        self._no_streaming_mask = None
 
     def __call__(self, f):
         raise NotImplementedError()
@@ -25,12 +25,12 @@ class Streaming(LatticeBase):
     # attributes for backwards compatibility
 
     @property
-    def no_stream_mask(self):
-        return self._no_stream_mask
+    def no_streaming_mask(self):
+        return self._no_streaming_mask
 
     @no_streaming_mask.setter
-    def no_stream_mask(self, mask):
-        self._no_stream_mask = mask
+    def no_streaming_mask(self, mask):
+        self._no_streaming_mask = mask
 
 
 class NoStreaming(Streaming):
