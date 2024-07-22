@@ -44,7 +44,8 @@ class PoiseuilleFlow2D(object):
     def grid(self):
         x = np.linspace(0, 1, num=self.resolution + 1, endpoint=True)
         y = np.linspace(0, 1, num=self.resolution + 1, endpoint=True)
-        return np.meshgrid(x, y, indexing='ij')
+        return self.units.lattice.convert_to_tensor(np.meshgrid(x, y,
+                                                                indexing='ij'))
 
     @property
     def boundaries(self):

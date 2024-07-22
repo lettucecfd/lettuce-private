@@ -122,7 +122,7 @@ class DecayingTurbulence:
     @property
     def grid(self):
         grid = [np.linspace(0, 2 * np.pi, num=self.resolution, endpoint=False) for _ in range(self.units.lattice.D)]
-        return np.meshgrid(*grid)
+        return self.units.lattice.convert_to_tensor(np.meshgrid(*grid))
 
     @property
     def boundaries(self):

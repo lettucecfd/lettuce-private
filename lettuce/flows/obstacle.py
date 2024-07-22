@@ -73,7 +73,8 @@ class Obstacle:
     @property
     def grid(self):
         xyz = tuple(self.units.convert_length_to_pu(np.arange(n)) for n in self.shape)
-        return np.meshgrid(*xyz, indexing='ij')
+        return self.units.lattice.convert_to_tensor(np.meshgrid(*xyz,
+                                                                indexing='ij'))
 
     @property
     def boundaries(self):

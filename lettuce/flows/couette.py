@@ -29,7 +29,8 @@ class CouetteFlow2D(object):
     def grid(self):
         x = np.linspace(0, 1, num=self.resolution, endpoint=False)
         y = np.linspace(0, 1, num=self.resolution, endpoint=False)
-        return np.meshgrid(x, y, indexing='ij')
+        return self.units.lattice.convert_to_tensor(np.meshgrid(x, y,
+                                                                indexing='ij'))
 
     @property
     def boundaries(self):
