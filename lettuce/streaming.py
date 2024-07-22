@@ -17,7 +17,7 @@ class Streaming(LatticeBase):
 
     def __init__(self, lattice: 'Lattice'):
         LatticeBase.__init__(self, lattice)
-        self.no_streaming_mask = None
+        self._no_stream_mask = None
 
     def __call__(self, f):
         raise NotImplementedError()
@@ -26,11 +26,11 @@ class Streaming(LatticeBase):
 
     @property
     def no_stream_mask(self):
-        return self.no_streaming_mask
+        return self._no_stream_mask
 
-    @no_stream_mask.setter
+    @no_streaming_mask.setter
     def no_stream_mask(self, mask):
-        self.no_streaming_mask = mask
+        self._no_stream_mask = mask
 
 
 class NoStreaming(Streaming):
@@ -59,11 +59,11 @@ class StandardStreaming(Streaming):
 
     def __call__(self, f):
         for i in range(1, self.lattice.Q):
-            if self.no_stream_mask is None:
+            if self.no_streaming_mask is None:
                 f[i] = self._stream(f, i)
             else:
                 new_fi = self._stream(f, i)
-                f[i] = torch.where(self.no_stream_mask[i], f[i], new_fi)
+                f[i] = torch.where(self.no_streaming_mask[i], f[i], new_fi)
         return f
 
     def _stream(self, f, i):

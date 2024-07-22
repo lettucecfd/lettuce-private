@@ -131,7 +131,7 @@ def test_masks(dtype_device):
     streaming = StandardStreaming(lattice)
     collision = BGKCollision(lattice, 1.0)
     simulation = Simulation(flow, lattice, collision, streaming)
-    assert simulation.streaming.no_stream_mask.any()
+    assert simulation.streaming.no_streaming_mask.any()
     assert simulation.collision.no_collision_mask.any()
 
 

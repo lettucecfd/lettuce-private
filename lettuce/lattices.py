@@ -56,7 +56,7 @@ class Lattice:
     def convert_to_tensor(self, array):
 
         def is_bool_array(it):
-            return (isinstance(it, torch.BoolTensor) or
+            return (isinstance(it, torch.BoolTensor) or (isinstance(it, torch.Tensor) and it.dtype == torch.bool) or
                     (isinstance(it, np.ndarray) and it.dtype in [bool, np.uint8]))
 
         with warnings.catch_warnings():
@@ -77,7 +77,7 @@ class Lattice:
 
     def j(self, f):
         """momentum"""
-        return self.einsum("qd,q->d", [self.e, f])
+        return self.einsum("qd,q->d", [self.e.to(self.dtype), f])
 
     def u(self, f, rho=None, acceleration=None):
         """velocity; the `acceleration` is used to compute the correct velocity in the presence of a forcing scheme."""

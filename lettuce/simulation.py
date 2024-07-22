@@ -36,6 +36,7 @@ class Simulation:
         self.lattice = lattice
         self.collision = collision
         self.streaming = streaming if streaming is not None else StandardStreaming(lattice)
+        self.store_f_collided = []
 
         self.i = 0
 
@@ -56,11 +57,12 @@ class Simulation:
         self.reporters = []
 
         # Define masks, where the collision or streaming are not applied
-        no_collision_mask = lattice.convert_to_tensor(np.zeros_like(flow.grid[0], dtype=bool))
-        no_streaming_mask = lattice.convert_to_tensor(np.zeros(self.f.shape, dtype=bool))
+        x = flow.grid
+        no_collision_mask = torch.zeros_like(x[0], dtype=torch.bool)
+        no_streaming_mask = torch.zeros(self.f.shape, dtype=torch.bool)
 
         # Apply boundaries
-        self._boundaries = deepcopy(self.flow.boundaries)  # store locally to keep the flow free from the boundary state
+        self._boundaries = self.flow.boundaries
         for boundary in self._boundaries:
             if hasattr(boundary, "make_no_collision_mask"):
                 no_collision_mask = no_collision_mask | boundary.make_no_collision_mask(self.f.shape)
@@ -70,43 +72,14 @@ class Simulation:
         self.collision.no_collision_mask = no_collision_mask.to(torch.bool)
         self.streaming.no_streaming_mask = no_streaming_mask.to(torch.bool)
 
-        # default collide and stream
-        self.collide_and_stream = Simulation.collide_and_stream_
-
-        # check if native is possible, available and wanted
-        if not lattice.use_native:
-            return
-        if str(lattice.device) == 'cpu':
-            print('Native Implementation was requested but no CUDA Device was selected!')
-            return
-        if not self.streaming.native_available():
-            print('Native Implementation requested but Streaming does not support Native yet!')
-            return
-        if not self.collision.native_available():
-            print('Native Implementation requested but Collision does not support Native yet!')
-            return
-
-        native_stencil = self.lattice.stencil.create_native()
-        native_streaming = self.streaming.create_native()
-        native_collision = self.collision.create_native()
-        native_generator = Generator(native_stencil, native_streaming, native_collision)
-
-        collide_and_stream = native_generator.resolve()
-        if collide_and_stream is None:
-
-            buffer = native_generator.generate()
-            directory = native_generator.format(buffer)
-            native_generator.install(directory)
-
-            collide_and_stream = native_generator.resolve()
-            if collide_and_stream is None:
-                print('Failed to install native Extension!')
-                return
-
-        self.collide_and_stream = collide_and_stream
-        if 'NoStreaming' not in native_streaming.name:  # TODO find a better way of storing f_next
-            self.f_next = torch.empty(self.f.shape, dtype=self.lattice.dtype, device=self.f.get_device())
-
+        # define f_collided (post-collision, pre-streaming f) storage format for hwbb, ibb1, ibb1c1 or ibb1c2, ...
+        self.boundary_range = range(len(self._boundaries))  # how many boundary condition python-objects
+        for boundary_index in self.boundary_range:
+            if hasattr(self._boundaries[boundary_index], "store_f_collided"):
+                self.store_f_collided.append(True)  # this boundary needs f_collided
+                self._boundaries[boundary_index].store_f_collided(self.f)
+            else:
+                self.store_f_collided.append(False)  # this boundary doesn't need f_collided
     @property
     def no_collision_mask(self):
         return self.collision.no_collision_mask
@@ -115,22 +88,21 @@ class Simulation:
     def no_collision_mask(self, no_collision_mask):
         self.collision.no_collision_mask = no_collision_mask
 
-    @staticmethod
-    def collide_and_stream_(self):
-        # Perform the collision routine everywhere, expect where the no_collision_mask is true
-        if self.collision.no_collision_mask is not None:
-            self.f = torch.where(self.collision.no_collision_mask, self.f, self.collision(self.f))
-        else:
-            self.collision(self.f)
-        self.f = self.streaming(self.f)
-
     def step(self, num_steps):
         """Take num_steps stream-and-collision steps and return performance in MLUPS."""
         start = timer()
         if self.i == 0:
             self._report()
         for _ in range(num_steps):
-            self.collide_and_stream(self)
+            self.f = torch.where(self.collision.no_collision_mask, self.f, self.collision(self.f))
+            ### STORE f_collided FOR BOUNDARIES needing post-collision-, pre-streaming populations for bounce or force-calculation
+            for boundary_index in self.boundary_range:
+                if self.store_f_collided[boundary_index]:
+                    self._boundaries[boundary_index].store_f_collided(self.f)
+            ### STREAMING
+            self.f = self.streaming(self.f)
+            ### BOUNDARY
+            # apply boundary conditions
             for boundary in self._boundaries:
                 self.f = boundary(self.f)
             self.i += 1
@@ -214,3 +186,7 @@ class Simulation:
         """Load f as np.array using pickle module."""
         with open(filename, "rb") as fp:
             self.f = pickle.load(fp)
+
+    @property
+    def boundaries(self):
+        return self._boundaries

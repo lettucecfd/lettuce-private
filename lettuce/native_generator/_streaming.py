@@ -15,11 +15,11 @@ class NativeStreaming(NativeLatticeBase):
 
     # noinspection PyMethodMayBeStatic
     def generate_no_stream_mask(self, generator: 'Generator'):
-        if not generator.launcher_hooked('no_stream_mask'):
-            generator.append_python_wrapper_before_buffer("assert hasattr(simulation.streaming, 'no_stream_mask')")
-            generator.launcher_hook('no_stream_mask', 'const at::Tensor no_stream_mask', 'no_stream_mask', 'simulation.streaming.no_stream_mask')
-        if not generator.kernel_hooked('no_stream_mask'):
-            generator.kernel_hook('no_stream_mask', 'const byte_t* no_stream_mask', 'no_stream_mask.data<byte_t>()')
+        if not generator.launcher_hooked('no_streaming_mask'):
+            generator.append_python_wrapper_before_buffer("assert hasattr(simulation.streaming, 'no_streaming_mask')")
+            generator.launcher_hook('no_streaming_mask', 'const at::Tensor no_streaming_mask', 'no_streaming_mask', 'simulation.streaming.no_streaming_mask')
+        if not generator.kernel_hooked('no_streaming_mask'):
+            generator.kernel_hook('no_streaming_mask', 'const byte_t* no_streaming_mask', 'no_streaming_mask.data<byte_t>()')
 
     @abstractmethod
     def generate_read(self, generator: 'Generator'):
@@ -181,7 +181,7 @@ class NativeStandardStreaming(NativeStreaming):
             generator.append_write_buffer(f'                                                         ')
             generator.append_write_buffer(f'    const index_t q_ = i;                                ')
             generator.append_write_buffer(f'                                                         ', cond=self.support_no_streaming_mask)
-            generator.append_write_buffer(f'    if (no_stream_mask[{mask_coord}]) {{                 ', cond=self.support_no_streaming_mask)
+            generator.append_write_buffer(f'    if (no_streaming_mask[{mask_coord}]) {{                 ', cond=self.support_no_streaming_mask)
             generator.append_write_buffer(f'                                                         ', cond=self.support_no_streaming_mask)
             generator.append_write_buffer(f'      const index_t x_ = index[0];                       ', cond=self.support_no_streaming_mask and d > 0)
             generator.append_write_buffer(f'      const index_t y_ = index[1];                       ', cond=self.support_no_streaming_mask and d > 1)

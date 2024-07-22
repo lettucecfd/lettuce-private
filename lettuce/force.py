@@ -1,6 +1,8 @@
 
 __all__ = ["Guo", "ShanChen"]
 
+import torch
+
 from .util import append_axes
 
 
@@ -11,11 +13,11 @@ class Guo:
         self.acceleration = lattice.convert_to_tensor(acceleration)
 
     def source_term(self, u):
-        emu = append_axes(self.lattice.e, self.lattice.D) - u
-        eu = self.lattice.einsum("ib,b->i", [self.lattice.e, u])
-        eeu = self.lattice.einsum("ia,i->ia", [self.lattice.e, eu])
+        emu = append_axes(self.lattice.e.float(), self.lattice.D) - u
+        eu = self.lattice.einsum("ib,b->i", [self.lattice.e.float(), u])
+        eeu = self.lattice.einsum("ia,i->ia", [self.lattice.e.float(), eu])
         emu_eeu = emu / (self.lattice.cs ** 2) + eeu / (self.lattice.cs ** 4)
-        emu_eeuF = self.lattice.einsum("ia,a->i", [emu_eeu, self.acceleration])
+        emu_eeuF = torch.einsum("ia,a->i", [emu_eeu, self.acceleration])
         weemu_eeuF = append_axes(self.lattice.w, self.lattice.D) * emu_eeuF
         return (1 - 1 / (2 * self.tau)) * weemu_eeuF
 
