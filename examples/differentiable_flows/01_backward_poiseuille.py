@@ -2,6 +2,7 @@ import torch
 import lettuce as lt
 import matplotlib.pyplot as plt
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from poiseuilleAD import PoiseuilleFlow2D
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument("--flow_name", default="Poiseuille", type=str, help="")
@@ -34,7 +35,7 @@ lattice = lt.Lattice(lt.D2Q9, device=default_device, use_native=False)
 Ma = torch.ones(1, requires_grad=True) * 0.1
 Re = torch.ones(1, requires_grad=True) * 100
 
-flow = lt.PoiseuilleFlow2D(
+flow = PoiseuilleFlow2D(
     resolution=20,
     reynolds_number=Re,
     mach_number=Ma,
