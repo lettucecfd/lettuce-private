@@ -58,7 +58,10 @@ def getEnergyGradient(inputs, steps, name, plot=False):
     energy = torch.sum(lattice.incompressible_energy(simulation.f))
     inputs.retain_grad()
     energy.backward(retain_graph=True)
-    print(f"Energy: {energy:.2e}, gradient of {name}: {inputs.grad.item():.2e}")
+    it = simulation.i
+    t = flow.units.convert_time_to_pu(it).item()
+    print(f"t = {t:.2f}, it = {it}, Energy: {energy:.2e}, "
+          f"gradient of {name}: {inputs.grad.item():.2e}")
     if plot:
         u_x = flow.units.convert_velocity_to_pu(
                 lattice.u(simulation.f)
@@ -77,7 +80,3 @@ while steps < 1000:
     steps += step_size
     getEnergyGradient(Ma, steps, "Mach number    ", plot=True)
     getEnergyGradient(Re, steps, "Reynolds number")
-# torch.sum(simulation.f).backward()
-
-
-
