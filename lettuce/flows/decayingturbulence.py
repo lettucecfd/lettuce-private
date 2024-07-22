@@ -8,6 +8,7 @@ energy_spectrum: returns a pair [spectrum, wavenumbers]
 """
 
 import numpy as np
+import torch
 from lettuce.unit import UnitConversion
 
 

@@ -67,7 +67,8 @@ class StandardStreaming(Streaming):
         return f
 
     def _stream(self, f, i):
-        return torch.roll(f[i], shifts=tuple(self.lattice.stencil.e[i]), dims=tuple(np.arange(self.lattice.D)))
+        return torch.roll(f[i], shifts=tuple(self.lattice.stencil.e[i]),
+                          dims=tuple(np.arange(self.lattice.D)))
 
 
 class SLStreaming(Streaming):

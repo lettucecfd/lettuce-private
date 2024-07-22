@@ -1,6 +1,7 @@
 
 import warnings
 import numpy as np
+import torch
 from lettuce.unit import UnitConversion
 from lettuce.util import append_axes
 from lettuce.boundary import EquilibriumBoundaryPU, BounceBackBoundary, AntiBounceBackOutlet

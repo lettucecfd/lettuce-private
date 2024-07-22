@@ -4,6 +4,7 @@ Special Inputs & standard value: shear_layer_width = 80, initial_perturbation_ma
 """
 
 import numpy as np
+import torch
 from lettuce.unit import UnitConversion
 
 

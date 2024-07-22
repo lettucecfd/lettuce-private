@@ -3,6 +3,7 @@ Couette Flow
 """
 
 import numpy as np
+import torch
 
 from lettuce.unit import UnitConversion
 from lettuce.boundary import BounceBackBoundary, EquilibriumBoundaryPU

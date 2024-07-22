@@ -3,6 +3,7 @@ Taylor-Green vortex in 2D and 3D.
 """
 
 import numpy as np
+import torch
 
 from lettuce.unit import UnitConversion
 
@@ -18,10 +19,10 @@ class TaylorGreenVortex2D:
         )
 
     def analytic_solution(self, x, t=0):
-        nu = self.units.viscosity_pu
-        u = np.array([np.cos(x[0]) * np.sin(x[1]) * np.exp(-2 * nu * t),
-                      -np.sin(x[0]) * np.cos(x[1]) * np.exp(-2 * nu * t)])
-        p = -np.array([0.25 * (np.cos(2 * x[0]) + np.cos(2 * x[1])) * np.exp(-4 * nu * t)])
+        nu = torch.tensor(self.units.viscosity_pu)
+        u = torch.stack((torch.cos(x[0]) * torch.sin(x[1]) * torch.exp(-2 * nu * t),
+                      -torch.sin(x[0]) * torch.cos(x[1]) * torch.exp(-2 * nu * t)))
+        p = -torch.tensor(0.25 * (torch.cos(2 * x[0]) + torch.cos(2 * x[1])) * torch.exp(-4 * nu * t))[None, :, :]
         return p, u
 
     def initial_solution(self, x):
@@ -50,12 +51,12 @@ class TaylorGreenVortex3D:
         )
 
     def initial_solution(self, x):
-        u = np.array([
-            np.sin(x[0]) * np.cos(x[1]) * np.cos(x[2]),
-            -np.cos(x[0]) * np.sin(x[1]) * np.cos(x[2]),
-            np.zeros_like(np.sin(x[0]))
-        ])
-        p = np.array([1 / 16. * (np.cos(2 * x[0]) + np.cos(2 * x[1])) * (np.cos(2 * x[2]) + 2)])
+        u = torch.stack((
+            torch.sin(x[0]) * torch.cos(x[1]) * torch.cos(x[2]),
+            -torch.cos(x[0]) * torch.sin(x[1]) * torch.cos(x[2]),
+            torch.zeros_like(x[0])
+        ))
+        p = (1 / 16. * (torch.cos(2 * x[0]) + torch.cos(2 * x[1])) * (torch.cos(2 * x[2]) + 2))[None,:,:,:]
         return p, u
 
     @property
