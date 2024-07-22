@@ -66,8 +66,8 @@ class Simulation:
         for boundary in self._boundaries:
             if hasattr(boundary, "make_no_collision_mask"):
                 no_collision_mask = no_collision_mask | boundary.make_no_collision_mask(self.f.shape)
-            if hasattr(boundary, "make_no_stream_mask"):
-                no_streaming_mask = no_streaming_mask | boundary.make_no_stream_mask(self.f.shape)
+            if hasattr(boundary, "make_no_streaming_mask"):
+                no_streaming_mask = no_streaming_mask | boundary.make_no_streaming_mask(self.f.shape)
 
         self.collision.no_collision_mask = no_collision_mask.to(torch.bool)
         self.streaming.no_streaming_mask = no_streaming_mask.to(torch.bool)
@@ -80,6 +80,7 @@ class Simulation:
                 self._boundaries[boundary_index].store_f_collided(self.f)
             else:
                 self.store_f_collided.append(False)  # this boundary doesn't need f_collided
+
     @property
     def no_collision_mask(self):
         return self.collision.no_collision_mask
