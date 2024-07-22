@@ -36,7 +36,7 @@ def test_bounce_back_boundary_not_applied_if_mask_empty(f_lattice):
 
 def test_equilibrium_boundary_pu(f_lattice):
     f, lattice = f_lattice
-    mask = (f[0] > 0).cpu().numpy()  # will contain all points
+    mask = (f[0] > 0)  # will contain all points
     units = UnitConversion(lattice, reynolds_number=1)
     pressure = 0
     velocity = 0.1 * np.ones(lattice.D)
