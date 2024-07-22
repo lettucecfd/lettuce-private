@@ -6,3 +6,9 @@ pyevtk
 pytest
 h5py>=3.2.1
 mmh3
+scipy
+pandas
+trimesh
+rtree
+pyglet<2
+pythonocc-core
