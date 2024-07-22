@@ -30,7 +30,8 @@ from lettuce.lattices import Lattice
 
 __all__ = ["LettuceBoundary", "BounceBackBoundary", "AntiBounceBackOutlet",
            "EquilibriumBoundaryPU", "EquilibriumOutletP", "SlipBoundary",
-           "InterpolatedBounceBackBoundary", "PartiallySaturatedBoundary",]
+           "InterpolatedBounceBackBoundary", "PartiallySaturatedBoundary",
+           "CollisionData"]
 
 
 class LettuceBoundary:

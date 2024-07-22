@@ -1,4 +1,5 @@
-from examples.differentiable_geometry_REQUIRES_DLR_CODE.occ_ad import (OCC_has_ad, make_gp_Pnt, make_gp_Vec, torch_float_to_standard_adouble)
+from examples.differentiable_geometry_REQUIRES_DLR_CODE.occ_ad import (
+    OCC_has_ad, make_gp_Pnt, make_gp_Vec, torch_float_to_standard_adouble)
 import torch
 if OCC_has_ad:
     import OCC.Core.ForwardAD as ad
@@ -8,10 +9,12 @@ try:
 except:
     OCC_has_display = False
 
-from OCC.Core.BRepBuilderAPI import BRepBuilderAPI_MakePolygon, BRepBuilderAPI_MakeFace, BRepBuilderAPI_FindPlane, \
-    BRepBuilderAPI_MakeEdge, BRepBuilderAPI_MakeWire
+from OCC.Core.BRepBuilderAPI import (BRepBuilderAPI_MakePolygon,
+                                     BRepBuilderAPI_MakeFace,
+                                     BRepBuilderAPI_FindPlane,
+                                     BRepBuilderAPI_MakeEdge,
+                                     BRepBuilderAPI_MakeWire)
 from OCC.Core.BRepPrimAPI import BRepPrimAPI_MakePrism
-from OCC.Core.gp import gp_Pnt
 from OCC.Core.TColgp import TColgp_HArray1OfPnt
 from OCC.Core.TColStd import TColStd_HArray1OfReal, TColStd_Array1OfInteger
 from OCC.Core.Geom import Geom_BSplineCurve
@@ -48,6 +51,35 @@ def build_terrain_2D(surface_data, depth=1.):
     else:
         face_builder = BRepBuilderAPI_MakeFace(polygon)
     surroundings = BRepPrimAPI_MakePrism(face_builder.Shape(), make_gp_Vec(0., 0., depth))
+    return surroundings.Shape()
+
+
+def build_house_from_points(surface_data, minz: float = 0., maxz: float = 1.):
+    """
+    returns a TopoDS_Sold of a 2D-house model. surface_data is a 2D-array of sorted x and y coordinates representing
+    a surface in 2D. This function connects the points to a polygonal curve, closes the curve to encompass a 2D face
+    representing the internal area of the terrain and then extrudes the face in z-direction to obtain a solid.
+    """
+
+    # connect surface data to polygon
+    polygon_builder = BRepBuilderAPI_MakePolygon()
+    for x, y in surface_data:
+        polygon_builder.Add(make_gp_Pnt(x, y, minz))
+
+    # close the polygon
+    polygon_builder.Close()
+    polygon = polygon_builder.Wire()
+
+    if not OCC_has_ad:
+        searcher = BRepBuilderAPI_FindPlane(polygon, 1e-10)
+    else:
+        searcher = BRepBuilderAPI_FindPlane(polygon, ad.Standard_Adouble(1e-10))
+
+    if searcher.Found():
+        face_builder = BRepBuilderAPI_MakeFace(searcher.Plane(), polygon)
+    else:
+        face_builder = BRepBuilderAPI_MakeFace(polygon)
+    surroundings = BRepPrimAPI_MakePrism(face_builder.Shape(), make_gp_Vec(0., 0., maxz-minz))
     return surroundings.Shape()
 
 

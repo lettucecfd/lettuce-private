@@ -41,10 +41,11 @@ def write_vtk(point_dict, id=0, filename_base="./data/output"):
 class VTKReporter:
     """General VTK Reporter for velocity and pressure"""
 
-    def __init__(self, lattice, flow, interval=50, filename_base="./data/output"):
+    def __init__(self, lattice, flow, interval=50, filename_base="./data/output", imin=0):
         self.lattice = lattice
         self.flow = flow
         self.interval = interval
+        self.imin = imin
         self.filename_base = filename_base
         directory = os.path.dirname(filename_base)
         if not os.path.isdir(directory):
@@ -52,7 +53,7 @@ class VTKReporter:
         self.point_dict = dict()
 
     def __call__(self, i, t, f):
-        if i % self.interval == 0:
+        if i % self.interval == 0 and i >= self.imin:
             u = self.flow.units.convert_velocity_to_pu(self.lattice.u(f))
             p = self.flow.units.convert_density_lu_to_pressure_pu(self.lattice.rho(f))
             if self.lattice.D == 2:

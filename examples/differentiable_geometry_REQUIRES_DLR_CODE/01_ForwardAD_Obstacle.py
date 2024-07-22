@@ -7,8 +7,7 @@ from examples.occ_geometries.obstacleFunctions import (calculate_mask,
                                                        makeGrid,
                                                        collect_collision_data)
 from examples.occ_geometries.obstacleSurface import ObstacleSurface
-from examples.postprocessing.plotting import (collect_intersections,
-                                              plot_intersections)
+from examples.postprocessing.plotting import collect_intersections
 import lettuce as lt
 from lettuce.boundary import CollisionData
 import matplotlib.pyplot as plt
