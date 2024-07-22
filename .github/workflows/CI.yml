@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "master"
+      - "algorithmic-differentiation-spelten"
   pull_request:
     branches:
       - "master"
