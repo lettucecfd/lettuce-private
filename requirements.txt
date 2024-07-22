@@ -12,3 +12,4 @@ trimesh
 rtree
 pyglet<2
 pythonocc-core
+joblib
