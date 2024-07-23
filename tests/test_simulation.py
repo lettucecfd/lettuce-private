@@ -45,9 +45,9 @@ def test_initialization(dtype_device, use_jacobi):
         num_iterations = 0
     else:
         num_iterations = simulation.initialize(500, 1e-3)
-    piter = lattice.convert_to_numpy(flow.units.convert_density_lu_to_pressure_pu(lattice.rho(simulation.f)))
+    piter = flow.units.convert_density_lu_to_pressure_pu(lattice.rho(simulation.f))
     # assert that pressure is converged up to 0.05 (max p
-    assert piter == pytest.approx(p, rel=0.0, abs=5e-2)
+    assert torch.allclose(piter, p, rtol=0.0, atol=5e-2)
     assert num_iterations < 500
 
 
