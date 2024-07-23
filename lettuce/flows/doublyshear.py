@@ -27,13 +27,14 @@ class DoublyPeriodicShear2D:
     def initial_solution(self, x):
         pert = self.initial_perturbation_magnitude
         w = self.shear_layer_width
-        u1 = np.choose(
+        u1 = torch.where(
             x[1] > 0.5,
-            [np.tanh(w * (x[1] - 0.25)), np.tanh(w * (0.75 - x[1]))]
+            torch.tanh(w * (x[1] - 0.25)),
+            torch.tanh(w * (0.75 - x[1]))
         )
-        u2 = pert * np.sin(2 * np.pi * (x[0] + 0.25))
-        u = np.stack([u1, u2], axis=0)
-        p = np.zeros_like(u1[None, ...])
+        u2 = pert * torch.sin(2 * np.pi * (x[0] + 0.25))
+        u = torch.stack([u1, u2], dim=0)
+        p = torch.zeros_like(u1[None, ...])
         return p, u
 
     @property

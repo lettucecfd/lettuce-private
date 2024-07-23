@@ -14,8 +14,13 @@ class Guo:
 
     def source_term(self, u):
         emu = append_axes(self.lattice.e.float(), self.lattice.D) - u
-        eu = self.lattice.einsum("ib,b->i", [self.lattice.e.float(), u])
-        eeu = self.lattice.einsum("ia,i->ia", [self.lattice.e.float(), eu])
+        print(self.lattice.e)
+        print(self.lattice.e.shape)
+        print(u.shape)
+        print(self.lattice.e.dtype)
+        print(u.dtype)
+        eu = torch.einsum("ib,b->i", [self.lattice.e, u])
+        eeu = torch.einsum("ia,i->ia", [self.lattice.e, eu])
         emu_eeu = emu / (self.lattice.cs ** 2) + eeu / (self.lattice.cs ** 4)
         emu_eeuF = torch.einsum("ia,a->i", [emu_eeu, self.acceleration])
         weemu_eeuF = append_axes(self.lattice.w, self.lattice.D) * emu_eeuF

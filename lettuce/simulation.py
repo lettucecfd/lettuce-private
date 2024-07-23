@@ -51,7 +51,9 @@ class Simulation:
                              f"Expected {[lattice.D] + list(grid[0].shape)}, "
                              f"but got {list(u.shape)}.")
         u = lattice.convert_to_tensor(flow.units.convert_velocity_to_lu(u))
-        rho = lattice.convert_to_tensor(flow.units.convert_pressure_pu_to_density_lu(p))
+        rho = lattice.convert_to_tensor(
+                flow.units.convert_pressure_pu_to_density_lu(p)
+            )
         self.f = lattice.equilibrium(rho, lattice.convert_to_tensor(u))
 
         self.reporters = []

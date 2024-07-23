@@ -14,7 +14,8 @@ class TaylorGreenVortex2D:
         self.units = UnitConversion(
             lattice,
             reynolds_number=reynolds_number, mach_number=mach_number,
-            characteristic_length_lu=resolution, characteristic_length_pu=2 * np.pi,
+            characteristic_length_lu=resolution,
+            characteristic_length_pu=2 * torch.pi,
             characteristic_velocity_pu=1
         )
 
@@ -46,7 +47,7 @@ class TaylorGreenVortex3D:
         self.units = UnitConversion(
             lattice,
             reynolds_number=reynolds_number, mach_number=mach_number,
-            characteristic_length_lu=resolution / (2 * np.pi), characteristic_length_pu=1,
+            characteristic_length_lu=resolution / (2 * torch.pi), characteristic_length_pu=1,
             characteristic_velocity_pu=1
         )
 

@@ -26,17 +26,21 @@ class PoiseuilleFlow2D(object):
         x, y = grid
         nu = self.units.viscosity_pu
         rho = 1
-        u = np.array([
-            self.acceleration[0] / (2 * rho * nu) * ((y - half_lattice_spacing) * (1 - half_lattice_spacing - y)),
-            np.zeros(x.shape)
-        ])
-        p = np.array([y * 0 + self.units.convert_density_lu_to_pressure_pu(rho)])
+        u1 = torch.tensor(self.acceleration[0] / (2 * rho * nu)
+                          * ((y - half_lattice_spacing)
+                             * (1 - half_lattice_spacing - y)),
+                          device=x.device)
+        u2 = torch.zeros_like(x)
+        u = torch.stack((u1, u2), dim=0)
+        p = torch.zeros_like(x) + self.units.convert_density_lu_to_pressure_pu(rho)
         return p, u
 
     def initial_solution(self, grid):
         if self.initialize_with_zeros:
-            p = np.array([0 * grid[0]], dtype=float)
-            u = np.array([0 * grid[0], 0 * grid[1]], dtype=float)
+            p = torch.zeros((1, *grid[0].shape), dtype=torch.float,
+                            device=grid[0].device)
+            u = torch.zeros((2, *grid[0].shape), dtype=torch.float,
+                            device=grid[0].device)
             return p, u
         else:
             return self.analytic_solution(grid)

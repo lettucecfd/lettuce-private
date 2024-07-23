@@ -19,11 +19,15 @@ def test_force(ForceType, device):
     collision = BGKCollision(lattice, tau=flow.units.relaxation_parameter_lu, force=force)
     streaming = StandardStreaming(lattice)
     simulation = Simulation(flow=flow, lattice=lattice, collision=collision, streaming=streaming)
+    torch.einsum("ib,b->i", [flow.lattice.e, lattice.u(simulation.f)])
     simulation.step(1000)
     # compare with reference solution
-    u_sim = lattice.u(simulation.f, acceleration=torch.as_tensor(acceleration_lu, device=device))
-    u_sim = flow.units.convert_velocity_to_pu(lattice.convert_to_numpy(u_sim))
+    u_sim = lattice.u(simulation.f,
+                      acceleration=torch.as_tensor(acceleration_lu,
+                                                   device=device))
+    u_sim = flow.units.convert_velocity_to_pu(u_sim)
     _, u_ref = flow.analytic_solution(flow.grid)
     fluidnodes = np.where(np.logical_not(flow.boundaries[0].mask.cpu()))
-    assert u_ref[0].max() == pytest.approx(u_sim[0].max(), rel=0.01)
-    assert u_ref[0][fluidnodes] == pytest.approx(u_sim[0][fluidnodes], rel=None, abs=0.01 * u_ref[0].max())
+    assert torch.isclose(u_ref[0].max(), u_sim[0].max(), rtol=.01)
+    assert torch.allclose(u_ref[0][fluidnodes], u_sim[0][fluidnodes],
+                          atol=.01 * u_ref[0].max())
