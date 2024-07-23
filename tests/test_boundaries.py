@@ -145,8 +145,9 @@ def test_equilibrium_pressure_outlet(dtype_device):
             x, y = self.grid
             return [
                 EquilibriumBoundaryPU(
-                    np.abs(x) < 1e-6, self.units.lattice, self.units,
-                    np.array([self.units.characteristic_velocity_pu, 0])
+                    torch.abs(x) < 1e-6, self.units.lattice, self.units,
+                    torch.tensor([self.units.characteristic_velocity_pu, 0],
+                                 device=self.units.lattice.device)
                 ),
                 EquilibriumOutletP(self.units.lattice, [0, -1]),
                 EquilibriumOutletP(self.units.lattice, [0, 1]),
@@ -154,12 +155,17 @@ def test_equilibrium_pressure_outlet(dtype_device):
                 BounceBackBoundary(self.mask, self.units.lattice)
             ]
 
-    flow = MyObstacle((32, 32), reynolds_number=10, mach_number=0.1, lattice=lattice, domain_length_x=3)
-    mask = torch.zeros_like(flow.grid[0], dtype=torch.bool)
+    flow = MyObstacle((32, 32), reynolds_number=10, mach_number=0.1,
+                      lattice=lattice, domain_length_x=3)
+    mask = torch.zeros_like(flow.grid[0], dtype=torch.bool,
+                            device=lattice.device)
     mask[10:20, 10:20] = 1
     flow.mask = mask
-    simulation = Simulation(flow, lattice, RegularizedCollision(lattice, flow.units.relaxation_parameter_lu),
-                            StandardStreaming(lattice))
+    simulation = Simulation(
+            flow, lattice,
+            RegularizedCollision(lattice, flow.units.relaxation_parameter_lu),
+            StandardStreaming(lattice)
+        )
     simulation.step(30)
     rho = lattice.rho(simulation.f)
     u = lattice.u(simulation.f)
