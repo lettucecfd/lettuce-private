@@ -44,7 +44,7 @@ def test_write_vtk(tmpdir):
     lattice = Lattice(D2Q9, "cpu")
     flow = TaylorGreenVortex2D(resolution=16, reynolds_number=10, mach_number=0.05, lattice=lattice)
     p, u = flow.initial_solution(flow.grid)
-    point_dict = {"p": p[0, ..., None]}
+    point_dict = {"p": p[0, ..., None].cpu().numpy()}
     write_vtk(point_dict, id=1, filename_base=tmpdir / "output")
     assert os.path.isfile(tmpdir / "output_00000001.vtr")
 
