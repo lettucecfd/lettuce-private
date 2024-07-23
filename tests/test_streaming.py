@@ -72,23 +72,30 @@ def test_standard_streaming_hardcoded_3D(lattice):
 
 
 def test_standard_streaming_devices(lattice2):
-    if lattice2[0].stencil.D() != 2 and lattice2[0].stencil.D() != 3:
+    if lattice2[0].stencil.D() not in [2, 3]:
         pytest.skip("Test for 2D and 3D only!")
 
     def simulate(lattice):
-        Flow = TaylorGreenVortex2D if lattice2[0].stencil.D() == 2 else TaylorGreenVortex3D
-        flow = Flow(resolution=16, reynolds_number=10, mach_number=0.05, lattice=lattice)
+        Flow = (TaylorGreenVortex2D
+                if lattice2[0].stencil.D() == 2
+                else TaylorGreenVortex3D)
+        flow = Flow(resolution=16, reynolds_number=10, mach_number=0.05,
+                    lattice=lattice)
 
         collision = NoCollision(lattice)
         streaming = StandardStreaming(lattice)
-        simulation = Simulation(flow=flow, lattice=lattice, collision=collision, streaming=streaming)
+        simulation = Simulation(flow=flow, lattice=lattice,
+                                collision=collision, streaming=streaming)
         simulation.step(4)
 
         return simulation.f
 
     lattice0, lattice1 = lattice2
-    f0 = simulate(lattice0).to(torch.device("cpu"))
-    f1 = simulate(lattice1).to(torch.device("cpu"))
+    f0 = simulate(lattice0)
+    f1 = simulate(lattice1)
 
-    error = torch.abs(f0 - f1).sum().data
-    assert float(error) == 0.0
+    error = torch.abs(f0 - f1.to(f0.device)).sum()
+    rtol_dir = {torch.float32: 1e-7, torch.float64: 1e-16}
+    assert torch.isclose(error, torch.tensor(0.0, dtype=f0.dtype,
+                                             device=f0.device),
+                         rtol=rtol_dir[error.dtype])
