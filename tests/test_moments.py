@@ -1,17 +1,18 @@
 import numpy as np
 import pytest
+import torch
 from lettuce.moments import *
 from lettuce.stencils import *
 from lettuce.lattices import Lattice
 
 
 def test_moments_density_array(stencil):
-    rho_tensor = moment_tensor(stencil.e, np.array([0] * stencil.D()))
+    rho_tensor = moment_tensor(stencil.e, torch.tensor([0] * stencil.D()))
     assert rho_tensor == pytest.approx(np.ones((stencil.Q())))
 
 
 def test_more_moments_density_array(stencil):
-    rho_tensor = moment_tensor(stencil.e, np.array([[0] * stencil.D()]))
+    rho_tensor = moment_tensor(stencil.e, torch.tensor([[0] * stencil.D()]))
     assert rho_tensor == pytest.approx(np.ones((1, stencil.Q())))
 
 
@@ -29,7 +30,7 @@ def test_more_moments_density_tensor(lattice):
 
 @pytest.mark.parametrize("MomentSet", (D2Q9Dellar, D2Q9Lallemand))
 def test_conserved_moments_d2q9(MomentSet):
-    multiindices = np.array([
+    multiindices = torch.tensor([
         [0, 0], [1, 0], [0, 1]
     ])
     m = moment_tensor(D2Q9.e, multiindices)
