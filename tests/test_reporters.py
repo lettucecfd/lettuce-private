@@ -1,3 +1,5 @@
+import glob
+
 import pytest
 import os
 from lettuce import TaylorGreenVortex2D, TaylorGreenVortex3D, PoiseuilleFlow2D, Lattice, D3Q27, D2Q9, write_image, \
@@ -10,7 +12,7 @@ import torch
 
 
 def test_write_image(tmpdir):
-    pytest.skip("matplotlib not working")
+    # pytest.skip("matplotlib not working")
     lattice = Lattice(D2Q9, "cpu")
     flow = TaylorGreenVortex2D(resolution=16, reynolds_number=10, mach_number=0.05, lattice=lattice)
     p, u = flow.initial_solution(flow.grid)
@@ -46,7 +48,7 @@ def test_write_vtk(tmpdir):
     p, u = flow.initial_solution(flow.grid)
     point_dict = {"p": p[0, ..., None].cpu().numpy()}
     write_vtk(point_dict, id=1, filename_base=tmpdir / "output")
-    assert os.path.isfile(tmpdir / "output_00000001.vtr")
+    assert os.path.isfile(tmpdir / "output_00000001.vti")
 
 
 def test_vtk_reporter_no_mask(tmpdir):
@@ -58,8 +60,8 @@ def test_vtk_reporter_no_mask(tmpdir):
     vtk_reporter = VTKReporter(lattice, flow, interval=1, filename_base=tmpdir / "output")
     simulation.reporters.append(vtk_reporter)
     simulation.step(2)
-    assert os.path.isfile(tmpdir / "output_00000000.vtr")
-    assert os.path.isfile(tmpdir / "output_00000001.vtr")
+    assert os.path.isfile(tmpdir / "output_00000000.vti")
+    assert os.path.isfile(tmpdir / "output_00000001.vti")
 
 
 def test_vtk_reporter_mask(tmpdir):
@@ -73,8 +75,8 @@ def test_vtk_reporter_mask(tmpdir):
     vtk_reporter.output_mask(simulation.no_collision_mask)
     simulation.step(2)
     assert os.path.isfile(tmpdir / "output_mask.vtr")
-    assert os.path.isfile(tmpdir / "output_00000000.vtr")
-    assert os.path.isfile(tmpdir / "output_00000001.vtr")
+    assert os.path.isfile(tmpdir / "output_00000000.vti")
+    assert os.path.isfile(tmpdir / "output_00000001.vti")
 
 
 def test_HDF5Reporter(tmpdir):
