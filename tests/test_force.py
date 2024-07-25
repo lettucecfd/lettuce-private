@@ -8,18 +8,20 @@ from lettuce.force import Guo, ShanChen
 
 
 @pytest.mark.parametrize("ForceType", [Guo, ShanChen])
-def test_force(ForceType, device):
+def test_force(ForceType, device, lattice):
     dtype = torch.double
-    lattice = Lattice(D2Q9, dtype=dtype, device=device, use_native=False)  # TODO use_native Fails here
-    flow = PoiseuilleFlow2D(resolution=16, reynolds_number=1, mach_number=0.02, lattice=lattice,
-                            initialize_with_zeros=True)
+    lattice = Lattice(D2Q9, dtype=dtype, device=device, use_native=False)
+    # TODO use_native Fails here
+    flow = PoiseuilleFlow2D(resolution=16, reynolds_number=1, mach_number=0.02,
+                            lattice=lattice, initialize_with_zeros=True)
     acceleration_lu = flow.units.convert_acceleration_to_lu(flow.acceleration)
     force = ForceType(lattice, tau=flow.units.relaxation_parameter_lu,
                       acceleration=acceleration_lu)
-    collision = BGKCollision(lattice, tau=flow.units.relaxation_parameter_lu, force=force)
+    collision = BGKCollision(lattice, tau=flow.units.relaxation_parameter_lu,
+                             force=force)
     streaming = StandardStreaming(lattice)
-    simulation = Simulation(flow=flow, lattice=lattice, collision=collision, streaming=streaming)
-    torch.einsum("ib,b->i", [flow.lattice.e, lattice.u(simulation.f)])
+    simulation = Simulation(flow=flow, lattice=lattice, collision=collision,
+                            streaming=streaming)
     simulation.step(1000)
     # compare with reference solution
     u_sim = lattice.u(simulation.f,
