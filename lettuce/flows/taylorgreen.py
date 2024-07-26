@@ -21,9 +21,13 @@ class TaylorGreenVortex2D:
 
     def analytic_solution(self, x, t=0):
         nu = torch.tensor(self.units.viscosity_pu)
-        u = torch.stack((torch.cos(x[0]) * torch.sin(x[1]) * torch.exp(-2 * nu * t),
-                      -torch.sin(x[0]) * torch.cos(x[1]) * torch.exp(-2 * nu * t)))
-        p = -torch.tensor(0.25 * (torch.cos(2 * x[0]) + torch.cos(2 * x[1])) * torch.exp(-4 * nu * t))[None, :, :]
+        u = torch.stack((torch.cos(x[0]) * torch.sin(x[1])
+                         * torch.exp(-2 * nu * t),
+                         -torch.sin(x[0]) * torch.cos(x[1])
+                         * torch.exp(-2 * nu * t))
+                        )
+        p = -(0.25 * (torch.cos(2 * x[0]) + torch.cos(2 * x[1]))
+              * torch.exp(-4 * nu * t))[None, :, :]
         return p, u
 
     def initial_solution(self, x):
